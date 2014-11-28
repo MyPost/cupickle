@@ -20,7 +20,7 @@
         (run-step text body steps)
         (dispatch (first body) fun steps)
         (run-step (str "after-annotation-" text) body steps))
-    (fun      text body steps)))
+    (fun text body steps)))
 
 (defn missing-definition [step]
   (cuc-print "Missing definition for step [" step "]"))
@@ -29,7 +29,9 @@
   (let [pattern (:pattern function-details)
         match   (re-matches pattern step)
         _       (cuc-print "Found match for step [" step "] with re [" pattern "]")
-        args    (concat body (rest match))
+        matchl  (if (string? match) [] (rest match))
+        bodyl   (if body body [])
+        args    (concat [step] matchl bodyl)
         res     (apply (:function function-details) args)
         ]
     res))
