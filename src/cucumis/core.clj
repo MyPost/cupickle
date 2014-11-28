@@ -14,8 +14,12 @@
 (declare run-step)
 
 (defn dispatch [[text & body] fun steps]
+  (cuc-print "In dispatch: " text)
   (if (re-matches #"^@.*" text)
-    (run-step text body steps)
+    (do (run-step (str "before-annotation-" text) body steps)
+        (run-step text body steps)
+        (dispatch (first body) fun steps)
+        (run-step (str "after-annotation-" text) body steps))
     (fun      text body steps)))
 
 (defn missing-definition [step]
@@ -31,17 +35,9 @@
     res))
 
 (defn step-matches [step function-details]
-  (cuc-print "Inside step matches")
-  (cuc-print "step" step)
-  (cuc-print "function details" function-details)
   (re-matches (:pattern function-details) step))
 
 (defn run-step [step body functions]
-  (cuc-print "Step: " step " and body " body)
-  (prn step)
-  (prn body)
-  (prn functions)
-  
   (let [matching (filter (partial step-matches step) functions)
         num      (count matching)]
     (condp = num
@@ -95,8 +91,8 @@
                             (let [info  (namespace-info n)]
                               (cuc-print info)
                               info)))
-        steps (apply concat step-files)
-        ]
+        steps (apply concat step-files)]
+
     (doseq [f features]
       (run-feature-file f steps))))
 
