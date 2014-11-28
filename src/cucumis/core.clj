@@ -1,6 +1,7 @@
 (ns cucumis.core
   (:require [bultitude.core       :as b]
-            [cemerick.pomegranate :as p])
+            [cemerick.pomegranate :as p]
+            [cucumis.gherkin      :as g])
   (:use     [clojure.java.io]))
 
 (def ^:dynamic cuc-print prn)
@@ -40,10 +41,27 @@
                          :pattern         (-> v meta :cucumis-pattern)})))]
     info))
 
-; (doall (map #(println (.getPath %)) (walk "src" #".*\.clj")))
+(defn run-scenario [[decl & other] steps]
+  (cuc-print "Scenario: " decl)
+  (doseq [step other]
+    (run-step step steps)))
+
+(defn run-step [step steps]
+  (cuc-print "Step: " step))
+
+(defn run-feature [[decl & other] steps]
+  (doseq [i other]
+    (cond (string? i) (run-step     i steps)
+          (seq?    i) (run-scenario i steps)
+          :default    (throw (Throwable. (str "Encountered an unexpected item while processing [" decl "] [" (class i) "]"))))))
 
 (defn run-feature-file [feature-file steps]
-  (cuc-print "lol"))
+  (try
+    (doseq [f (g/parse-gherkin (slurp feature-file))] (run-feature f steps))
+    (catch Exception e
+      (do
+        (cuc-print "Caught an exception while processing cucumber file " (.getPath feature-file))
+        (throw e)))))
 
 (defn run-steps-and-features [namespaces features]
   (let [step-files (doall (for [n namespaces]
