@@ -2,14 +2,23 @@
   (:require [bultitude.core       :as b]
             [cemerick.pomegranate :as p]
             [cucumis.gherkin      :as g])
-  (:use     [clojure.java.io]))
+  (:use     [clojure.java.io]
+            [clojure.pprint]))
 
+; Printing is done with cuc-print so that lein-cucumis can overwrite the printer with the lein printer
 (def ^:dynamic cuc-print prn)
 
+
+; Feature, Scenario, Step, and Annotation functions
+
 (defn missing-definition [] nil)
+
 (defn run-matching [] nil)
 
-(defn run-step [previous-result step functions]
+(defn run-step [step functions]
+  (defn run-step [step steps]
+    (cuc-print "Step: " step))
+
   (let [matching (filter #(-> % :pattern (re-matches step)) functions)
         num      (count matching)]
     (condp = num
@@ -17,13 +26,35 @@
       1 (run-matching step (first matching))
       :default (throw (Throwable. (str "Too many matching functions for step [" step "] - [" matching "]"))))))
 
-(defn run-feature [function-lookup feature]
-  (cuc-print "Function-lookup: " function-lookup))
+(defn dispatch [decl i function steps]
+  (cond (string? i) (run-step i steps)
+        (seq?    i) (function i steps)
+        :default    (throw (Throwable. (str "Encountered an unexpected item while processing [" decl "] [" (class i) "]")))))
 
-(defn walk [dirpath pattern]
-  (doall (filter #(re-matches pattern (.getName %))
-                 (file-seq (file dirpath)))))
- 
+(defn run-scenario [[decl & other] steps]
+  (cuc-print "Scenario: " decl)
+  (doseq [step other]
+    (run-step step steps)))
+
+(defn run-feature [[decl & other] steps]
+  (cuc-print "Feature: " decl)
+  (doseq [i other]
+    (dispatch decl i run-scenario steps)))
+
+
+; File and Directory-Structure handlers
+
+(defn run-feature-file [feature-file steps]
+  (try
+    (let [text (slurp feature-file)
+          parsed (g/parse-gherkin text)]
+      (clojure.pprint/pprint parsed)
+      (doseq [f parsed] (run-feature f steps)))
+
+    (catch Exception e
+      (do (cuc-print "Caught an exception while processing cucumber file " (.getPath feature-file))
+          (throw e)))))
+
 (defn namespace-info [n]
   (let [; path (b/path-for n)
         ; path (clojure.string/replace path #".clj$" "") ; TODO: This sucks
@@ -41,28 +72,6 @@
                          :pattern         (-> v meta :cucumis-pattern)})))]
     info))
 
-(defn run-scenario [[decl & other] steps]
-  (cuc-print "Scenario: " decl)
-  (doseq [step other]
-    (run-step step steps)))
-
-(defn run-step [step steps]
-  (cuc-print "Step: " step))
-
-(defn run-feature [[decl & other] steps]
-  (doseq [i other]
-    (cond (string? i) (run-step     i steps)
-          (seq?    i) (run-scenario i steps)
-          :default    (throw (Throwable. (str "Encountered an unexpected item while processing [" decl "] [" (class i) "]"))))))
-
-(defn run-feature-file [feature-file steps]
-  (try
-    (doseq [f (g/parse-gherkin (slurp feature-file))] (run-feature f steps))
-    (catch Exception e
-      (do
-        (cuc-print "Caught an exception while processing cucumber file " (.getPath feature-file))
-        (throw e)))))
-
 (defn run-steps-and-features [namespaces features]
   (let [step-files (doall (for [n namespaces]
                             (let [info  (namespace-info n)]
@@ -72,6 +81,10 @@
         ]
     (doseq [f features]
       (run-feature-file f steps))))
+
+(defn walk [dirpath pattern] ; Thanks Stack-Overflow!
+  (doall (filter #(re-matches pattern (.getName %))
+                 (file-seq (file dirpath)))))
 
 (defn main
   "
