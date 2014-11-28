@@ -17,12 +17,21 @@
     (cons (tree-text (concat xs left))
           (climb-cucumber-tree righter)) ))
 
+(defn annotation [x xs [y & ys]] ; TODO: Handle cases where first doesn't make sense...
+  (list (list x (first (climb-cucumber-tree (list y))))
+        (first (climb-cucumber-tree ys))))
+
 (defn table [& them] [ [">>> table >>>" them]])
 
 ; Data-type-hook table
 
-(def todo {"\"\"\"" blockquote
-           "|"      table     })
+(defn todo [x]
+  (let [lookup    [[ #"^\"\"\"$" blockquote ]
+                   [ #"^|"       table      ]
+                   [ #"^@.*"     annotation ]]
+        filtered  (filter #(re-matches (first %) x) lookup)
+        found     (second (first filtered))]
+    found))
 
 ; Monkeys
 

@@ -11,35 +11,53 @@
 
 ; Feature, Scenario, Step, and Annotation functions
 
-(defn missing-definition [] nil)
+(declare run-step)
 
-(defn run-matching [] nil)
+(defn dispatch [[text & body] fun steps]
+  (if (re-matches #"^@.*" text)
+    (run-step text body steps)
+    (fun      text body steps)))
 
-(defn run-step [step functions]
-  (defn run-step [step steps]
-    (cuc-print "Step: " step))
+(defn missing-definition [step]
+  (cuc-print "Missing definition for step [" step "]"))
 
-  (let [matching (filter #(-> % :pattern (re-matches step)) functions)
+(defn run-matching [step body function-details]
+  (let [pattern (:pattern function-details)
+        match   (re-matches pattern step)
+        _       (cuc-print "Found match for step [" step "] with re [" pattern "]")
+        args    (concat body (rest match))
+        res     (apply (:function function-details) args)
+        ]
+    res))
+
+(defn step-matches [step function-details]
+  (cuc-print "Inside step matches")
+  (cuc-print "step" step)
+  (cuc-print "function details" function-details)
+  (re-matches (:pattern function-details) step))
+
+(defn run-step [step body functions]
+  (cuc-print "Step: " step " and body " body)
+  (prn step)
+  (prn body)
+  (prn functions)
+  
+  (let [matching (filter (partial step-matches step) functions)
         num      (count matching)]
     (condp = num
-      0 (missing-definition step)
-      1 (run-matching step (first matching))
+      0        (missing-definition step)
+      1        (run-matching step body (first matching))
       :default (throw (Throwable. (str "Too many matching functions for step [" step "] - [" matching "]"))))))
 
-(defn dispatch [decl i function steps]
-  (cond (string? i) (run-step i steps)
-        (seq?    i) (function i steps)
-        :default    (throw (Throwable. (str "Encountered an unexpected item while processing [" decl "] [" (class i) "]")))))
-
-(defn run-scenario [[decl & other] steps]
+(defn run-scenario [decl other steps]
   (cuc-print "Scenario: " decl)
   (doseq [step other]
-    (run-step step steps)))
+    (dispatch step run-step steps)))
 
-(defn run-feature [[decl & other] steps]
+(defn run-feature [decl other steps]
   (cuc-print "Feature: " decl)
-  (doseq [i other]
-    (dispatch decl i run-scenario steps)))
+  (doseq [s other]
+    (dispatch s run-scenario steps)))
 
 
 ; File and Directory-Structure handlers
@@ -48,8 +66,8 @@
   (try
     (let [text (slurp feature-file)
           parsed (g/parse-gherkin text)]
-      (clojure.pprint/pprint parsed)
-      (doseq [f parsed] (run-feature f steps)))
+      (clojure.pprint/pprint parsed) ; TODO: Remove
+      (doseq [f parsed] (dispatch f run-feature steps)))
 
     (catch Exception e
       (do (cuc-print "Caught an exception while processing cucumber file " (.getPath feature-file))
@@ -77,7 +95,7 @@
                             (let [info  (namespace-info n)]
                               (cuc-print info)
                               info)))
-        steps (concat step-files)
+        steps (apply concat step-files)
         ]
     (doseq [f features]
       (run-feature-file f steps))))
