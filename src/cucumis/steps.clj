@@ -1,8 +1,19 @@
 (ns cucumis.steps
   "
-  Some simple definitions to redefine the gherkin helpers since the cucumber
-  namespace cannot be required due to some reflection jank.
-  ")
+  Helpers to define step-definitions based on Given, When, etc...
+
+  Defines a simple function with :cucumis-pattern metadata.
+
+  For example:
+  
+  (Before #\"I take a walk.*\" [] (prn \"walking step\"))
+
+  ... would create the following definition:
+
+  (defn ^{:cucumis-pattern #\"Before\\s+I take a walk.*\"} before-I-take-a-walk-- [] (prn \"walking step\"))
+  "
+
+  (:require [clojure.string :refer [capitalize]]))
 
 (defn fn-name [prefix pat]
   (with-meta
@@ -14,7 +25,7 @@
               str
               (clojure.string/replace #"[^a-zA-Z0-9]" "-"))))
 
-    {:cucumis-pattern pat}))
+    {:cucumis-pattern (->> pat str (str (capitalize prefix) "\\s+") (re-pattern))}))
 
 (defmacro Before [pattern args & body] `(defn ~(fn-name "before" pattern) [~@args] ~@body))
 (defmacro After  [pattern args & body] `(defn ~(fn-name "after"  pattern) [~@args] ~@body))
