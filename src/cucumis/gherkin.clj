@@ -13,8 +13,6 @@
 (defn blockquote [x xs ys]
   (let [[left right] (split-with not-blockquote ys)
         righter      (drop 1 right)]
-    
-    (prn "blockquote" x)
 
     (cons (tree-text (concat xs left))
           (climb-cucumber-tree righter)) ))
@@ -44,17 +42,6 @@
         (k x xs ys)
         (cons (cons x (climb-cucumber-tree xs))
               (climb-cucumber-tree ys))))))
-
-;(defn group-args [data]
-;  (if (empty? data)
-;    []
-;    (let [[ head & body ] data]
-;      (if (empty? body)
-;        [(if (seq? head) (group-args head) head]]
-;        (let [[bhead & bbody] body]
-;          (if (string? bhead)
-;            (cons (concat head [bhead]) bbody)
-;            (cons head (group-args body))))))))
 
 (defn group-args [x]
   (cond (string? x)     x
