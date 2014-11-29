@@ -1,5 +1,6 @@
 (ns cucumis.gherkin
-  (:require [cucumis.parse-indented-lines :as lines]))
+  (:require [cucumis.parse-indented-lines :as lines])
+  (:use     [clojure.pprint]))
 
 (defn not-blockquote [[l & ls]] (not (= l "\"\"\"")))
 
@@ -18,8 +19,8 @@
           (climb-cucumber-tree righter)) ))
 
 (defn annotation [x xs [y & ys]] ; TODO: Handle cases where first doesn't make sense...
-  (list (list x (first (climb-cucumber-tree (list y))))
-        (first (climb-cucumber-tree ys))))
+  (cons (list x (first (climb-cucumber-tree (list y))))
+        (climb-cucumber-tree ys)))
 
 (defn table [& them] [ [">>> table >>>" them]])
 
@@ -71,13 +72,21 @@
 (assert (groupable? '(("asdf") "qwer")))
 (assert (groupable? '((("asdf") "qwer"))))
 
+(defn debug [x y]
+  (clojure.pprint/pprint  [x y]) ; TODO: Remove debugging
+  y)
+
 (defn parse-gherkin [str]
   (->> str
        lines/parse
        climb-cucumber-tree
+       (debug "cucumber")
        group-args))
 
+(comment
 
-; (def parsed (parse-cucumber (slurp "/Users/lyndon/Silverpond/APDM/doorman-all-versions/doorman/features/F440_Sign_in_to_APDM/US4873_authenticated_by_CSSO.feature")))
+  (let [parsed (parse-gherkin (slurp "/Users/lyndon/Silverpond/APDM/doorman-all-versions/doorman/features/F440_Sign_in_to_APDM/US4873_authenticated_by_CSSO.feature"))
+        ]
+    parsed)
 
-; (clojure.pprint/pprint parsed)
+)

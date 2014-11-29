@@ -50,10 +50,17 @@
       1        (run-matching step body (first matching))
       :default (throw (Throwable. (str "Too many matching functions for step [" step "] - [" matching "]"))))))
 
+(defn failed-scenario [scenario step]
+  (cuc-print "Scenario failed [" scenario "] step [" step "]."))
+
 (defn run-scenario [decl other steps]
   (debug "Scenario: " decl)
   (doseq [step other]
-    (dispatch step run-step steps)))
+    (try
+      (do (dispatch step run-step steps)
+          (cuc-print "."))
+      (catch Throwable e
+        (failed-scenario decl step)))))
 
 (defn run-feature [decl other steps]
   (debug "Feature: " decl)
@@ -66,7 +73,9 @@
 (defn run-feature-file [feature-file steps]
   (try
     (let [text (slurp feature-file)
-          parsed (g/parse-gherkin text)]
+          _ (println text)
+          parsed (g/parse-gherkin text)
+          _ (clojure.pprint/pprint parsed)]
       (doseq [f parsed] (dispatch f run-feature steps)))
 
     (catch Exception e
@@ -125,13 +134,11 @@
     (p/add-classpath feature-path)
 
     (binding [*debug* (:debug cucumis)]
-      (run-steps-and-features namespaces features))
-
-namespaces
-))
+      (run-steps-and-features namespaces features))))
 
 (comment
 
   (main :feature-path "my-little-features")
+  (binding [*debug* true] (main :feature-path "my-little-features"))
 
 )
