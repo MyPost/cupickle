@@ -26,7 +26,7 @@
     (fun text body steps)))
 
 (defn missing-definition [step]
-  (debug "Missing definition for step [" step "]"))
+  (cuc-print "Missing definition for step [" step "]"))
 
 (defn run-matching [step body function-details]
   (let [pattern (:pattern function-details)
@@ -37,6 +37,7 @@
         args    (concat [step] matchl bodyl)
         res     (apply (:function function-details) args)
         ]
+    (cuc-print ".")
     res))
 
 (defn step-matches [step function-details]
@@ -57,8 +58,7 @@
   (debug "Scenario: " decl)
   (doseq [step other]
     (try
-      (do (dispatch step run-step steps)
-          (cuc-print "."))
+      (dispatch step run-step steps)
       (catch Throwable e
         (failed-scenario decl step)))))
 
@@ -73,9 +73,7 @@
 (defn run-feature-file [feature-file steps]
   (try
     (let [text (slurp feature-file)
-          _ (println text)
-          parsed (g/parse-gherkin text)
-          _ (clojure.pprint/pprint parsed)]
+          parsed (g/parse-gherkin text)]
       (doseq [f parsed] (dispatch f run-feature steps)))
 
     (catch Exception e
@@ -90,16 +88,17 @@
         info (doall
               (filter :pattern
                       (for [[k v] (ns-publics n)]
-                        {:namespace       n
-                         :function-symbol k
-                         :function        v
-                         :pattern         (-> v meta :cucumis-pattern)})))]
+                        (do (debug "Collecting function: " n k v (meta v))
+                            {:namespace       n
+                             :function-symbol k
+                             :function        v
+                             :pattern         (-> v meta :cucumis-pattern)}))))]
     info))
 
 (defn run-steps-and-features [namespaces features]
   (let [step-files (doall (map namespace-info namespaces))
         steps      (apply concat step-files)]
-
+    
     (doseq [f features]
       (run-feature-file f steps))))
 

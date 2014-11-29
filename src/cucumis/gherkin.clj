@@ -80,7 +80,6 @@
   (->> str
        lines/parse
        climb-cucumber-tree
-       (debug "cucumber")
        group-args))
 
 (comment
