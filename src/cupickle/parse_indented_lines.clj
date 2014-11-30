@@ -1,4 +1,4 @@
-(ns cucumis.parse-indented-lines)
+(ns cupickle.parse-indented-lines)
 
 (def ^:dynamic *indent-assert* true)
 

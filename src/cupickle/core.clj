@@ -1,11 +1,11 @@
-(ns cucumis.core
+(ns cupickle.core
   (:require [bultitude.core       :as b]
             [cemerick.pomegranate :as p]
-            [cucumis.gherkin      :as g])
+            [cupickle.gherkin      :as g])
   (:use     [clojure.java.io]
             [clojure.pprint]))
 
-; Printing is done with cuc-print so that lein-cucumis can overwrite the printer with the lein printer
+; Printing is done with cuc-print so that lein-cupickle can overwrite the printer with the lein printer
 
 (def  ^:dynamic *debug* false)
 (def  ^:dynamic *quiet* true)
@@ -111,7 +111,7 @@
                             {:namespace       n
                              :function-symbol k
                              :function        v
-                             :pattern         (-> v meta :cucumis-pattern)}))))]
+                             :pattern         (-> v meta :cupickle-pattern)}))))]
     info))
 
 (defn run-steps-and-features [namespaces features]
@@ -147,10 +147,10 @@
   * debug
   "
 
-  [ & {:keys [feature-path step-path] :as cucumis}]
+  [ & {:keys [feature-path step-path] :as cupickle}]
 
-  (binding [*debug* (:debug cucumis)
-            *quiet* (:quiet cucumis)]
+  (binding [*debug* (:debug cupickle)
+            *quiet* (:quiet cupickle)]
 
     (let [feature-path (or feature-path "features")
           step-path    (or step-path feature-path)
@@ -164,7 +164,7 @@
 
 (defn help []
   (cuc-print "Usage:")
-  (cuc-print "  lein cucumis [-h] [--help] [help true] [quiet true] [debug true] [feature-path FEATURE_PATH] [step-path STEP_PATH]"))
+  (cuc-print "  lein cupickle [-h] [--help] [help true] [quiet true] [debug true] [feature-path FEATURE_PATH] [step-path STEP_PATH]"))
 
 (comment
 

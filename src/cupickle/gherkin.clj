@@ -1,5 +1,5 @@
-(ns cucumis.gherkin
-  (:require [cucumis.parse-indented-lines :as lines])
+(ns cupickle.gherkin
+  (:require [cupickle.parse-indented-lines :as lines])
   (:use     [clojure.pprint]))
 
 (defn not-blockquote [[l & ls]] (not (= l "\"\"\"")))

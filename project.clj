@@ -1,4 +1,4 @@
-(defproject cucumis "0.1.0-SNAPSHOT"
+(defproject cupickle "0.1.0-SNAPSHOT"
   :description "A library to run cucumber features agains a set of step definitions."
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"

@@ -1,6 +1,6 @@
-(ns cucumis.core-test
+(ns cupickle.core-test
   (:require [clojure.test :refer :all]
-            [cucumis.core :refer :all]))
+            [cupickle.core :refer :all]))
 
 (deftest a-test
   (testing "FIXME, I fail."

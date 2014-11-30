@@ -1,8 +1,8 @@
-(ns cucumis.steps
+(ns cupickle.steps
   "
   Helpers to define step-definitions based on Given, When, etc...
 
-  Defines a simple function with :cucumis-pattern metadata.
+  Defines a simple function with :cupickle-pattern metadata.
 
   For example:
   
@@ -10,10 +10,10 @@
 
   ... would create the following definition:
 
-  (defn ^{:cucumis-pattern #\"Before\\s+I take a walk.*\"} before-I-take-a-walk-- [] (prn \"walking step\"))
+  (defn ^{:cupickle-pattern #\"Before\\s+I take a walk.*\"} before-I-take-a-walk-- [] (prn \"walking step\"))
 
   Note: These macros expect a literal regex (or string) pattern... If you want to do something more complicated,
-  then you will have to create your own function with the required :cucumis-pattern metadata.
+  then you will have to create your own function with the required :cupickle-pattern metadata.
   "
 
   (:require [clojure.string :refer [capitalize]]))
@@ -28,7 +28,7 @@
               str
               (clojure.string/replace #"[^a-zA-Z0-9]" "-"))))
 
-    {:cucumis-pattern (->> pat str (str (capitalize prefix) "\\s+") (re-pattern))}))
+    {:cupickle-pattern (->> pat str (str (capitalize prefix) "\\s+") (re-pattern))}))
 
 (defmacro Before [pattern args & body] `(defn ~(fn-name "before" pattern) [~@args] ~@body))
 (defmacro After  [pattern args & body] `(defn ~(fn-name "after"  pattern) [~@args] ~@body))
