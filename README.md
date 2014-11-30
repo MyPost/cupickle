@@ -1,5 +1,7 @@
 # cupickle
 
+![A Pickle in a Cubicle](http://i.imgur.com/NsBCjsQ.png)
+
 A Clojure library designed to run cucucmber test-suites.
 
 Write cucumber features with clojure step-definitions from your cubicle... with cupickle!
@@ -34,3 +36,5 @@ your option) any later version.
 * Print single dots for progress
 * Show how to implement missing step-definitions
 * More documentation
+* Publish to clojars
+* Annotation support in cupickle.steps
