@@ -11,6 +11,9 @@
   ... would create the following definition:
 
   (defn ^{:cucumis-pattern #\"Before\\s+I take a walk.*\"} before-I-take-a-walk-- [] (prn \"walking step\"))
+
+  Note: These macros expect a literal regex (or string) pattern... If you want to do something more complicated,
+  then you will have to create your own function with the required :cucumis-pattern metadata.
   "
 
   (:require [clojure.string :refer [capitalize]]))

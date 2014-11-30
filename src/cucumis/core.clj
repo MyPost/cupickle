@@ -6,27 +6,42 @@
             [clojure.pprint]))
 
 ; Printing is done with cuc-print so that lein-cucumis can overwrite the printer with the lein printer
+
 (def  ^:dynamic *debug* false)
+(def  ^:dynamic *quiet* true)
 (def  ^:dynamic cuc-print prn)
+
 (defmacro debug [& args]
   `(if *debug*
      (cuc-print ~@args)))
 
-; Feature, Scenario, Step, and Annotation functions
+(defmacro info [& args]
+  `(if (or *debug* (not *quiet*))
+     (cuc-print ~@args)))
 
+; Result wrappers
+(defn error   [& {:keys [] :as body}] [(merge {:type :error  } body)])
+(defn success [& {:keys [] :as body}] [(merge {:type :success} body)])
+
+; Concatty for doall thing
+(defmacro focat [bindings & body]
+  `(doall (apply concat (for ~bindings (do ~@body)))))
+
+; Feature, Scenario, Step, and Annotation functions
 (declare run-step)
 
 (defn dispatch [[text & body] fun steps]
   (debug "In dispatch: " text)
   (if (re-matches #"^@.*" text)
-    (do (run-step (str "before-annotation-" text) body steps)
-        (run-step text body steps)
-        (dispatch (first body) fun steps)
-        (run-step (str "after-annotation-" text) body steps))
+    (do (debug "In annotation: " text)
+        [(run-step (str "before-annotation-" text) body steps)
+         (run-step text body steps)
+         (dispatch (first body) fun steps)
+         (run-step (str "after-annotation-" text) body steps)])
     (fun text body steps)))
 
 (defn missing-definition [step]
-  (cuc-print "Missing definition for step [" step "]"))
+  (info "Missing definition for step [" step "]"))
 
 (defn run-matching [step body function-details]
   (let [pattern (:pattern function-details)
@@ -37,8 +52,8 @@
         args    (concat [step] matchl bodyl)
         res     (apply (:function function-details) args)
         ]
-    (cuc-print ".")
-    res))
+    (info ".")
+    (success :result res :step step :body body :function function-details)))
 
 (defn step-matches [step function-details]
   (re-matches (:pattern function-details) step))
@@ -52,33 +67,35 @@
       :default (throw (Throwable. (str "Too many matching functions for step [" step "] - [" matching "]"))))))
 
 (defn failed-scenario [scenario step]
-  (cuc-print "Scenario failed [" scenario "] step [" step "]."))
+  (cuc-print "Scenario failed [" scenario "] step [" step "].")
+  (error :scenario scenario :step step))
 
 (defn run-scenario [decl other steps]
   (debug "Scenario: " decl)
-  (doseq [step other]
-    (try
-      (dispatch step run-step steps)
-      (catch Throwable e
-        (failed-scenario decl step)))))
+  (focat [step other]
+           (try
+             (dispatch step run-step steps)
+             (catch Throwable e
+               (failed-scenario decl step)))))
 
 (defn run-feature [decl other steps]
   (debug "Feature: " decl)
-  (doseq [s other]
-    (dispatch s run-scenario steps)))
+  (focat [s other]
+           (dispatch s run-scenario steps)))
 
 
 ; File and Directory-Structure handlers
 
 (defn run-feature-file [feature-file steps]
   (try
-    (let [text (slurp feature-file)
+    (let [text   (slurp feature-file)
           parsed (g/parse-gherkin text)]
-      (doseq [f parsed] (dispatch f run-feature steps)))
+
+      (focat [f parsed] (dispatch f run-feature steps)))
 
     (catch Exception e
-      (do (cuc-print "Caught an exception while processing cucumber file " (.getPath feature-file))
-          (throw e)))))
+      (cuc-print "Caught an exception while processing cucumber file" :file (.getPath feature-file))
+      (error :message "Caught an exception while processing cucumber file" :file (.getPath feature-file)))))
 
 (defn namespace-info [n]
   (let [path (clojure.string/replace (str n) "." "/")
@@ -99,8 +116,8 @@
   (let [step-files (doall (map namespace-info namespaces))
         steps      (apply concat step-files)]
     
-    (doseq [f features]
-      (run-feature-file f steps))))
+    (focat [f features]
+           (run-feature-file f steps))))
 
 (defn walk [dirpath pattern] ; Thanks Stack-Overflow!
   (doall (filter #(re-matches pattern (.getName %))
@@ -125,15 +142,18 @@
 
   [ & {:keys [feature-path step-path] :as cucumis}]
 
-  (let [feature-path (or feature-path "features")
-        step-path    (or step-path feature-path)
-        namespaces   (b/namespaces-on-classpath :classpath step-path)
-        features     (walk feature-path #".*\.feature")]
+  (binding [*debug* (:debug cucumis)
+            *quiet* (:quiet cucumis)]
 
-    (p/add-classpath feature-path)
+    (let [feature-path (or feature-path "features")
+          step-path    (or step-path feature-path)
+          namespaces   (b/namespaces-on-classpath :classpath step-path)
+          features     (walk feature-path #".*\.feature")
+          _            (p/add-classpath feature-path)
+          result       (run-steps-and-features namespaces features)]
 
-    (binding [*debug* (:debug cucumis)]
-      (run-steps-and-features namespaces features))))
+      (info result)
+      result)))
 
 (comment
 
