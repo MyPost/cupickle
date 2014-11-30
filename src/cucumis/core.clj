@@ -162,6 +162,10 @@
       (debug result)
       result)))
 
+(defn help []
+  (cuc-print "Usage:")
+  (cuc-print "  lein cucumis [-h] [--help] [help true] [quiet true] [debug true] [feature-path FEATURE_PATH] [step-path STEP_PATH]"))
+
 (comment
 
   (main :feature-path "my-little-features")
