@@ -6,6 +6,12 @@ Write cucumber features with clojure step-definitions from your cubicle... with 
 
 ## Usage
 
+Put `[au.com.auspost/cupickle "0.1.0-SNAPSHOT"]` into the `:dependencies` vector of your project.clj.
+
+Put `(:require [cupickle.steps :as cps])` into your namespace that is going to define steps.
+
+Put `(:require [cupickle.core :as cpc])` into your namespace that is going to trigger testing (not-required if you are using lein-cupickle).
+
 Two namespaces are provided:
 
 * cupickle.core
