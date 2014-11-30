@@ -1,10 +1,17 @@
 # cucumis
 
-A Clojure library designed to ... well, that part is up to you.
+A Clojure library designed to run cucucmber test-suites.
 
 ## Usage
 
-FIXME
+Two namespaces are provided:
+
+* cucumis.core
+* cucumis.steps
+
+Core is intended to be used to trigger test runs.
+
+Steps is intended to make the definitions of cucumis-compatible functions easier.
 
 ## License
 
