@@ -222,6 +222,7 @@
         passed-scenarios (filter #(= :success  (:type  %)) scenarios)
         steps            (filter #(= :step     (:level %)) results)
         passed-steps     (filter #(= :success  (:type  %)) steps)
+        missing-steps    (filter #(= :missing  (:type  %)) steps)
         step-count       (apply + (map :total-steps scenarios))
         errors           (filter #(= :error    (:type  %)) results)]
 
@@ -233,6 +234,7 @@
     (info "  Scenarios:" (count passed-scenarios) "/" (count scenarios) "passed.")
     (info "  Steps:    " (count passed-steps)     "/" step-count        "passed.")
     (info "  Errors:   " (count errors))
+    (info "  Missing:  " (count missing-steps))
     (info "")
     (info "Testing" (if (empty? errors) "was a success!" "failed..."))
     (info "")))
