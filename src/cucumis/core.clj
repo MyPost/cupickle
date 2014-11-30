@@ -22,6 +22,7 @@
 ; Result wrappers
 (defn error   [& {:keys [] :as body}] [(merge {:type :error  } body)])
 (defn success [& {:keys [] :as body}] [(merge {:type :success} body)])
+(defn missing [& {:keys [] :as body}] [(merge {:type :missing} body)])
 
 ; Concatty for doall thing
 (defmacro focat [bindings & body]
@@ -41,7 +42,8 @@
     (fun text body steps)))
 
 (defn missing-definition [step]
-  (info "Missing definition for step [" step "]"))
+  (info "Missing definition for step [" step "]")
+  (missing :step step))
 
 (defn run-matching [step body function-details]
   (let [pattern (:pattern function-details)
@@ -138,6 +140,11 @@
 
   (main :feature-path \"my-special-cucumber-features\")
   ; => true
+
+  Other flags:
+  
+  * quiet
+  * debug
   "
 
   [ & {:keys [feature-path step-path] :as cucumis}]
@@ -150,9 +157,9 @@
           namespaces   (b/namespaces-on-classpath :classpath step-path)
           features     (walk feature-path #".*\.feature")
           _            (p/add-classpath feature-path)
-          result       (run-steps-and-features namespaces features)]
+          result       (apply concat (run-steps-and-features namespaces features))]
 
-      (info result)
+      (debug result)
       result)))
 
 (comment
