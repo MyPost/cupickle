@@ -31,7 +31,6 @@ Distributed under the Apache License v2.0
 
 ## TODO
 
-* License
 * Print single dots for progress
 * Show how to implement missing step-definitions
 * More documentation
