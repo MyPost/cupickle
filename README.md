@@ -25,10 +25,9 @@ Steps is intended to make the definitions of cupickle-compatible functions easie
 
 ## License
 
-Copyright © 2014 FIXME
+Copyright © 2014 Australia Post
 
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Distributed under the Apache License v2.0
 
 ## TODO
 
