@@ -15,7 +15,14 @@
 
 (def ^:dynamic *debug* false)
 (def ^:dynamic *quiet* true)
-(def ^:dynamic cuc-print (fn [& stuff] (println (apply str stuff))))
+(def ^:dynamic cuc-print (fn [& args] 
+                           (println (apply
+                                     str
+                                     (map
+                                      #(str (if (seq? %)
+                                              (into [] %)
+                                              %) " ")
+                                      args))))) ; TODO: This is ugly... Find a better way.
 
 (defmacro debug
   "
@@ -99,7 +106,7 @@
         _       (debug "Found match for step [" step "] with re [" pattern "]")
         matchl  (if (string? match) [] (rest match))
         bodyl   (if body body [])
-        args    (concat [step] matchl bodyl)
+        args    (concat matchl bodyl)
         res     (apply (:function function-details) args)
         ]
     (info ".")
@@ -112,7 +119,7 @@
   (let [matching (filter (partial step-matches step) functions)
         num      (count matching)]
     (condp = num
-      0        (missing-definition step)
+      0        (missing-definition step) ; TODO: Consider allowing multiple definitions to run with a warning?
       1        (run-matching step body (first matching))
       :default (throw (Throwable. (str "Too many matching functions for step [" step "] - [" matching "]"))))))
 
@@ -129,14 +136,13 @@
                                (dispatch step run-step steps)
                                (catch Throwable e
                                  (if-not *quiet*
-                                   (do
-                                     (st/print-throwable   e)
-                                     (st/print-stack-trace e)))
+                                   (do (cuc-print "")
+                                       (st/print-stack-trace e)))
                                  (failed-step decl step steps))))
         allpassed?    (empty? (filter #(= :error (:type %)) results))
-        result        (if allpassed?
-                        (concat (apply success scenario-info) results)
-                        (concat (apply error   scenario-info) results))]
+        result        (doall (if allpassed?
+                               (concat (apply success scenario-info) results)
+                               (concat (apply error   scenario-info) results)))]
 
     (debug "")
     (debug "Scenario Info:")
@@ -185,9 +191,6 @@
   "
   [n]
   (let [path (clojure.string/replace (str n) "." "/")
-        
-        _ (clojure.core/load path)
-
         info (doall
               (filter :pattern
                       (for [[k v] (ns-publics n)]
@@ -201,6 +204,8 @@
 (defn run-steps-and-features [namespaces features]
   (let [steps (focat [n namespaces] (namespace-info n))]
     
+    (debug "Namespaces: " namespaces)
+
     (focat [f features]
            (run-feature-file f steps))))
 
@@ -216,7 +221,7 @@
   Scenarios: (x/y) passed.
   Steps:     (x/y) passed.
   Errors:    n
-
+  
   Testing was a [success!|failure...]
   "
   [results]
@@ -244,6 +249,14 @@
     (info "Testing" (if (empty? errors) "was a success!" "failed..."))
     (info "")))
 
+(defn load-steps [step-path files]
+  (doseq [f files] (-> f
+                       .getPath
+                       (clojure.string/replace (str step-path "/") "")
+                       (clojure.string/replace step-path "")
+                       (clojure.string/replace #"\.clj" "")
+                       load)))
+
 (defn main
   "
   Run a set of features against a set of definitions.
@@ -264,6 +277,7 @@
   
   * quiet
   * debug
+  * step-path
   "
 
   [ & {:keys [feature-path step-path] :as cupickle}]
@@ -272,10 +286,11 @@
             *quiet* (:quiet cupickle)]
 
     (let [feature-path (or feature-path "features")
-          step-path    (or step-path feature-path)
+          step-path    (or step-path    feature-path)
+          _            (p/add-classpath step-path)
           namespaces   (b/namespaces-on-classpath :classpath step-path)
           features     (walk feature-path #".*\.feature")
-          _            (p/add-classpath feature-path)
+          _            (load-steps step-path (walk step-path #".*\.clj"))
           result       (run-steps-and-features namespaces features)]
 
       (debug "")
