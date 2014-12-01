@@ -66,9 +66,9 @@
   The annotation related items are simply run as regular steps.
   The items are:
   
-  * before-annotation-@something  
+  * before-@something  
   * @something  
-  * after-annotation-@something  
+  * after-@something  
 
   If there is no annotation, the regular item-function is dispatched to,
   thus the name.
@@ -77,10 +77,10 @@
   (debug "In dispatch: " text)
   (if (re-matches #"^@.*" text)
     (do (debug "In annotation: " text)
-        [(run-step (str "before-annotation-" text) body steps)
+        [(run-step (str "Before " text) body steps)
          (run-step text body steps)
          (dispatch (first body) fun steps)
-         (run-step (str "after-annotation-" text) body steps)])
+         (run-step (str "After " text) body steps)])
     (fun text body steps)))
 
 (defn missing-definition
@@ -121,10 +121,10 @@
     (condp = num
       0        (missing-definition step) ; TODO: Consider allowing multiple definitions to run with a warning?
       1        (run-matching step body (first matching))
-      :default (throw (Throwable. (str "Too many matching functions for step [" step "] - [" matching "]"))))))
+               (throw (Throwable. (str "Too many matching functions for step [" step "] - [" matching "]"))))))
 
 (defn failed-step [scenario step steps]
-  (cuc-print "Scenario failed [" scenario "] step [" step "].")
+  (cuc-print "Scenario failed [" scenario "] step " step)
   (error :level :step :scenario scenario :failing-step step))
 
 (defn run-scenario [decl other steps]
@@ -180,8 +180,9 @@
 
       (focat [f parsed] (dispatch f run-feature steps)))
 
-    (catch Exception e
-      (cuc-print "Caught an exception while processing cucumber file" :file (.getPath feature-file))
+    (catch Throwable e
+      (cuc-print "Caught an exception while processing cucumber file " [(.getPath feature-file)])
+      (if-not *quiet* (st/print-stack-trace e))
       (error :level :feature-file :message "Caught an exception while processing cucumber file" :file (.getPath feature-file)))))
 
 (defn namespace-info
