@@ -1,6 +1,6 @@
-(defproject au.com.auspost/cupickle "0.1.0-SNAPSHOT"
+(defproject au.com.auspost/cupickle "0.1.0"
   :description "A library to run cucumber features agains a set of step definitions."
-  :url "http://example.com/FIXME"
+  :url "https://github.com/MyPost/cupickle"
   :license {:name "Apache License v2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0.txt"}
   :dependencies [[org.clojure/clojure "1.5.1"]

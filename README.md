@@ -8,7 +8,7 @@ Write cucumber features with clojure step-definitions from your cubicle... with 
 
 ## Usage
 
-Put `[au.com.auspost/cupickle "0.1.0-SNAPSHOT"]` into the `:dependencies` vector of your project.clj.
+Put `[au.com.auspost/cupickle "0.1.0"]` into the `:dependencies` vector of your project.clj.
 
 Put `(:require [cupickle.steps :as cps])` into your namespace that is going to define steps.
 
