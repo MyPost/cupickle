@@ -6,7 +6,8 @@
   "
   (:require [bultitude.core       :as b]
             [cemerick.pomegranate :as p]
-            [cupickle.gherkin      :as g])
+            [cupickle.gherkin     :as g]
+            [clojure.stacktrace   :as st])
   (:use     [clojure.java.io]
             [clojure.pprint]))
 
@@ -127,6 +128,10 @@
                              (try
                                (dispatch step run-step steps)
                                (catch Throwable e
+                                 (if-not *quiet*
+                                   (do
+                                     (st/print-throwable   e)
+                                     (st/print-stack-trace e)))
                                  (failed-step decl step steps))))
         allpassed?    (empty? (filter #(= :error (:type %)) results))
         result        (if allpassed?
