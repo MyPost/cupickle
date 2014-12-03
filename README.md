@@ -23,6 +23,10 @@ Core is intended to be used to trigger test runs.
 
 Steps is intended to make the definitions of cupickle-compatible functions easier.
 
+## Testing
+
+Currently set to perform continuous-integration with [Travis-CI](https://travis-ci.com).
+
 ## License
 
 Copyright © 2014 Australia Post
