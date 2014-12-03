@@ -1,7 +1,12 @@
 (ns cupickle.core-test
   (:require [clojure.test :refer :all]
+            [cupickle.gherkin :as gherkin]
             [cupickle.core :refer :all]))
 
 (deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 1))))
+  (testing "Ghkerkin Parser"
+    (is (= (gherkin/parse-gherkin "") nil))
+    (is (= (gherkin/parse-gherkin "testing") '(("testing"))))
+    (is (= (gherkin/parse-gherkin "a\n b\n c") '(("a" ("b") ("c")))))
+    (is (= (gherkin/parse-gherkin "a\n  \"\"\"\n  b\n  \"\"\"") '(("a" "b\n"))))
+))

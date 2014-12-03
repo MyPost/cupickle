@@ -81,11 +81,3 @@
        lines/parse
        climb-cucumber-tree
        group-args))
-
-(comment
-
-  (let [parsed (parse-gherkin (slurp "/Users/lyndon/Silverpond/APDM/doorman-all-versions/doorman/features/F440_Sign_in_to_APDM/US4873_authenticated_by_CSSO.feature"))
-        ]
-    parsed)
-
-)
