@@ -258,6 +258,16 @@
                        (clojure.string/replace #"\.clj" "")
                        load)))
 
+(defn file? [f]
+  (= java.io.File (class f)))
+
+(defn to-files [feature-path items]
+  (if items
+    (map #(if (file? %)
+            %
+            (file feature-path %))
+         items)))
+
 (defn main
   "
   Run a set of features against a set of definitions.
@@ -266,7 +276,7 @@
   and has a side-effect of printing the test-run information.
 
   The default feature-path is \"features\"
-  
+
   Options are provided as keyword-value pairs.
 
   For example:
@@ -274,14 +284,18 @@
   (main :feature-path \"my-special-cucumber-features\")
   ; => true
 
-  Other flags:
-  
-  * quiet
-  * debug
-  * step-path
+  All flags:
+
+  * feature-path - defaults to \"features\" and is the root for the feature search
+  * step-path    - defaults to feature-path and is the root for the step search
+  * namespaces   - defaults to all step namespaces, but can be overloaded to a list of symbols
+  * features     - defaults to all features under feature-path, but can be set to a list of files, or paths relative to feature-path
+  * quiet        - silence most output (not generated from steps)
+  * debug        - output verbose informtation about progress
+
   "
 
-  [ & {:keys [feature-path step-path] :as cupickle}]
+  [ & {:keys [feature-path step-path namespaces features] :as cupickle}]
 
   (binding [*debug* (:debug cupickle)
             *quiet* (:quiet cupickle)]
@@ -289,8 +303,8 @@
     (let [feature-path (or feature-path "features")
           step-path    (or step-path    feature-path)
           _            (p/add-classpath step-path)
-          namespaces   (b/namespaces-on-classpath :classpath step-path)
-          features     (walk feature-path #".*\.feature")
+          namespaces   (or namespaces (b/namespaces-on-classpath :classpath step-path))
+          features     (or (to-files feature-path features) (walk feature-path #".*\.feature"))
           _            (load-steps step-path (walk step-path #".*\.clj"))
           result       (run-steps-and-features namespaces features)]
 

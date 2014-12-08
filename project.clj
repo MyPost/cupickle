@@ -1,4 +1,4 @@
-(defproject au.com.auspost/cupickle "0.2.0"
+(defproject au.com.auspost/cupickle "0.3.0"
   :description "A library to run cucumber features agains a set of step definitions."
   :url "https://github.com/MyPost/cupickle"
   :license {:name "Apache License v2.0"
