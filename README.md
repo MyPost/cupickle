@@ -27,7 +27,7 @@ Steps is intended to make the definitions of cupickle-compatible functions easie
 
 ![Build Status](https://travis-ci.org/MyPost/cupickle.svg)
 
-Currently set to perform continuous-integration with [Travis-CI](https://travis-ci.org/MyPost)
+Currently set to perform continuous-integration with [Travis-CI](https://travis-ci.org/MyPost/cupickle)
 
 ## License
 
