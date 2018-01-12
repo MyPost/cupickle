@@ -25,7 +25,7 @@
 
   (let [prefix (capitalize prefix)]
     (if (some #{prefix} keywords-matching-and)
-      (str "(?:" prefix "|And)")
+      (str "(?:" prefix "|And|But)")
       prefix)))
 
 (defn get-cupickle-pattern
