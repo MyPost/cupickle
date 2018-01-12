@@ -121,7 +121,7 @@
     (condp = num
       0        (missing-definition step) ; TODO: Consider allowing multiple definitions to run with a warning?
       1        (run-matching step body (first matching))
-               (throw (Throwable. (str "Too many matching functions for step [" step "] - [" matching "]"))))))
+               (throw (Throwable. (str "Too many matching functions for step [" step "] - [" (apply str matching) "]"))))))
 
 (defn failed-step [scenario step steps]
   (cuc-print "Scenario failed [" scenario "] step " step)
