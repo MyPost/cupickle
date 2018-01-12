@@ -5,7 +5,7 @@
   Defines a simple function with :cupickle-pattern metadata.
 
   For example:
-  
+
   (Before #\"I take a walk.*\" [] (prn \"walking step\"))
 
   ... would create the following definition:
@@ -18,9 +18,26 @@
 
   (:require [clojure.string :refer [capitalize]]))
 
+(def keywords-matching-and #{"Given" "When" "Then"})
+
+(defn get-prefix-or-and
+  [prefix]
+
+  (let [prefix (capitalize prefix)]
+    (if (some #{prefix} keywords-matching-and)
+      (str "(?:" prefix "|And)")
+      prefix)))
+
+(defn get-cupickle-pattern
+  [pat prefix]
+  (->> pat
+       str
+       (str (get-prefix-or-and prefix) "\\s+")
+       (re-pattern)))
+
 (defn fn-name [prefix pat]
   (with-meta
-    
+
     (symbol
      (str prefix
           "-"
@@ -28,7 +45,7 @@
               str
               (clojure.string/replace #"[^a-zA-Z0-9]" "-"))))
 
-    {:cupickle-pattern (->> pat str (str (capitalize prefix) "\\s+") (re-pattern))}))
+    {:cupickle-pattern (get-cupickle-pattern pat prefix)}))
 
 (defmacro Before [pattern args & body] `(defn ~(fn-name "before" pattern) [~@args] ~@body))
 (defmacro After  [pattern args & body] `(defn ~(fn-name "after"  pattern) [~@args] ~@body))
